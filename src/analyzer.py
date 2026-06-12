@@ -1,0 +1,58 @@
+import sys
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+
+from langchain_ollama import OllamaLLM
+from langchain_core.prompts import PromptTemplate
+
+# Initialize our Critic 🧠
+llm = OllamaLLM(model="mistral")
+
+class GapAnalyzer:
+    def __init__(self):
+        self.template = """
+        You are a Senior Industry Consultant. 
+        Compare the 'Candidate/Document' against the 'Target Requirements'.
+        
+        TARGET REQUIREMENTS:
+        {target}
+        
+        CANDIDATE/DOCUMENT DATA:
+        {candidate}
+        
+        Provide a professional report with:
+        1. MATCH SCORE: (0-100)
+        2. STRENGTHS: (Top 3 alignment points)
+        3. GAPS: (What is missing or weak?)
+        4. ACTION PLAN: (How to bridge the gap?)
+        
+        Format as a clean bulleted list.
+        """
+        self.prompt = PromptTemplate(template=self.template, input_variables=["target", "candidate"])
+
+    def generate_report(self, target_text, candidate_json):
+        # We convert the JSON back to a string for the LLM to read
+        candidate_str = f"Name: {candidate_json['entity_name']}\nSkills: {', '.join(candidate_json['key_features'])}\nSummary: {candidate_json['summary']}"
+        
+        _input = self.prompt.format(target=target_text, candidate=candidate_str)
+        response = llm.invoke(_input)
+        return response
+
+# --- QUICK TEST ---
+if __name__ == "__main__":
+    analyzer = GapAnalyzer()
+    
+    # Example: A Job Description
+    job_desc = "We need a Senior Data Scientist with 5 years of experience in AWS, Docker, and Python."
+    
+    # Example: Our extracted data from Step 1
+    my_data = {
+        "entity_name": "Mayank",
+        "key_features": ["Python", "Machine Learning", "FAISS"],
+        "summary": "AI enthusiast with 2 years experience in building LLM projects."
+    }
+    
+    report = analyzer.generate_report(job_desc, my_data)
+    print("🚀 --- GAP ANALYSIS REPORT --- 🚀")
+    print(report)

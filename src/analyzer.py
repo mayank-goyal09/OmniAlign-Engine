@@ -1,13 +1,23 @@
 import sys
+import os
 if sys.platform == "win32":
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
     sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 
-from langchain_ollama import OllamaLLM
+from dotenv import load_dotenv
+load_dotenv()
+
+from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 
 # Initialize our Critic 🧠
-llm = OllamaLLM(model="mistral")
+# Using Groq's llama-3.3-70b-versatile model for sub-second high-intelligence processing
+llm = ChatOpenAI(
+    base_url="https://api.groq.com/openai/v1",
+    api_key=os.environ.get("GROQ_API_KEY"),
+    model="llama-3.3-70b-versatile",
+    temperature=0
+)
 
 class GapAnalyzer:
     def __init__(self):
@@ -37,7 +47,15 @@ class GapAnalyzer:
         
         _input = self.prompt.format(target=target_text, candidate=candidate_str)
         response = llm.invoke(_input)
-        return response
+        return response.content if hasattr(response, "content") else str(response)
+
+    def generate_report_stream(self, target_text, candidate_json):
+        # Convert the JSON back to a string for the LLM to read
+        candidate_str = f"Name: {candidate_json['entity_name']}\nSkills: {', '.join(candidate_json['key_features'])}\nSummary: {candidate_json['summary']}"
+        
+        _input = self.prompt.format(target=target_text, candidate=candidate_str)
+        for chunk in llm.stream(_input):
+            yield chunk.content if hasattr(chunk, "content") else str(chunk)
 
 # --- QUICK TEST ---
 if __name__ == "__main__":

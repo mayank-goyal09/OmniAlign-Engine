@@ -47,8 +47,18 @@ if st.button("Run Semantic Match"):
                 st.subheader(f"🎯 Best Match Found: {best_match['entity_name']}")
                 
                 # Show Gap Analysis
-                report = analyzer.generate_report(target_input, best_match)
                 st.markdown("### 📊 Analysis Report")
-                st.write(report)
+                report_placeholder = st.empty()
+                full_report = ""
+                try:
+                    # Stream the response chunk by chunk to prevent freezing and show immediate progress
+                    report_stream = analyzer.generate_report_stream(target_input, best_match)
+                    for chunk in report_stream:
+                        full_report += chunk
+                        report_placeholder.markdown(full_report)
+                except Exception as e:
+                    # Fallback if streaming fails
+                    report = analyzer.generate_report(target_input, best_match)
+                    report_placeholder.markdown(report)
             else:
                 st.error("No documents found in the database. Please upload some first!")

@@ -6,3 +6,5 @@ src/__pycache__/
 .streamlit/
 *.pdf
 
+# Ignore environment variables
+.env

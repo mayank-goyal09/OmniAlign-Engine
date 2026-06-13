@@ -12,10 +12,12 @@ from typing import List
 
 from pydantic import BaseModel, Field
 from langchain_community.document_loaders import PyPDFLoader
-from langchain_ollama import OllamaLLM
+from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser
 from sentence_transformers import SentenceTransformer
+from dotenv import load_dotenv
+load_dotenv()
 
 import logging
 logging.getLogger("transformers.modeling_utils").setLevel(logging.ERROR)
@@ -26,16 +28,30 @@ class RankingResult(BaseModel):
     alignment_score: int = Field(description="Integer score from 0 to 100 based on attribute alignment and skill transferability.")
     logic: str = Field(description="1-sentence explanation of why this entity is a high/low match.")
 
+class EntityEvaluation(BaseModel):
+    entity_id: str = Field(description="The exact entity_id of the entity being evaluated.")
+    alignment_score: int = Field(description="Integer score from 0 to 100 based on attribute alignment and skill transferability.")
+    logic: str = Field(description="1-sentence explanation of why this entity is a high/low match.")
+
+class BatchRankingResult(BaseModel):
+    evaluations: List[EntityEvaluation] = Field(description="List of evaluations for all the entities provided.")
+
 class SemanticRankingEngine:
     def __init__(self, dimension: int = 384):
         # 1. Initialize the Vector Store (FAISS)
         self.index = faiss.IndexFlatL2(dimension)
         # 2. Initialize the Embedder
         self.embedder = SentenceTransformer('all-MiniLM-L6-v2')
-        # 3. Initialize the Evaluator Brain (Mistral)
-        self.llm = OllamaLLM(model="mistral")
+        # 3. Initialize the Evaluator Brain (llama-3.3-70b-versatile via Groq)
+        self.llm = ChatOpenAI(
+            base_url="https://api.groq.com/openai/v1",
+            api_key=os.environ.get("GROQ_API_KEY"),
+            model="llama-3.3-70b-versatile",
+            temperature=0
+        )
         self.metadata = []
         self.parser = PydanticOutputParser(pydantic_object=RankingResult)
+        self.batch_parser = PydanticOutputParser(pydantic_object=BatchRankingResult)
         
     def process_batch(self, directory_path: str, batch_size: int = 10):
         """Batch processing layer to stream documents from a directory to conserve RAM"""
@@ -94,15 +110,54 @@ class SemanticRankingEngine:
             if i != -1:
                 top_entities.append(self.metadata[i])
         
-        # --- Stage 2 (Mistral Evaluation): Pass to Ollama ---
-        print(f"🧠 Stage 2: Passing {len(top_entities)} entities to Mistral for profound evaluation...")
-        leaderboard = []
+        if not top_entities:
+            return json.dumps([])
+
+        # --- Stage 2 (Groq Batch Evaluation): Pass to Llama 3.3 for evaluation ---
+        print(f"🧠 Stage 2: Passing {len(top_entities)} entities to Llama 3.3 for batch evaluation...")
         
-        # Sector-neutral prompt enforcing generalization
-        prompt = PromptTemplate(
+        # Format the candidates info
+        candidates_str = ""
+        for entity in top_entities:
+            candidates_str += f"\n---\nEntity ID: {entity['entity_id']}\nProfile snippet:\n{entity['content'][:2000]}\n"
+
+        batch_prompt = PromptTemplate(
             template="""You are an expert Alignment Evaluator.
-Evaluate how well the Entity's attributes map to the Benchmark Requirements.
+Evaluate how well the following Entities' attributes map to the Benchmark Requirements.
 Look for 'Skill Transferability' and 'Attribute Alignment' (e.g., strong problem-solving in one sector transferring well to another).
+
+BENCHMARK REQUIREMENTS:
+{benchmark}
+
+ENTITIES TO EVALUATE:
+{entities_content}
+
+{format_instructions}
+""",
+            input_variables=["benchmark", "entities_content"],
+            partial_variables={"format_instructions": self.batch_parser.get_format_instructions()},
+        )
+
+        leaderboard = []
+        try:
+            _input = batch_prompt.format(benchmark=benchmark_reqs, entities_content=candidates_str)
+            response = self.llm.invoke(_input)
+            response_content = response.content if hasattr(response, "content") else str(response)
+            
+            parsed_res = self.batch_parser.parse(response_content)
+            for eval_entry in parsed_res.evaluations:
+                leaderboard.append({
+                    "entity_id": eval_entry.entity_id,
+                    "alignment_score": eval_entry.alignment_score,
+                    "logic": eval_entry.logic
+                })
+        except Exception as batch_error:
+            print(f"⚠️ Batch evaluation failed: {batch_error}. Falling back to sequential evaluation...")
+            # Fallback logic: individual sequential evaluation using Groq
+            single_prompt = PromptTemplate(
+                template="""You are an expert Alignment Evaluator.
+Evaluate how well the Entity's attributes map to the Benchmark Requirements.
+Look for 'Skill Transferability' and 'Attribute Alignment'.
 
 BENCHMARK REQUIREMENTS:
 {benchmark}
@@ -112,28 +167,26 @@ ENTITY PROFILE (Sample Context):
 
 {format_instructions}
 """,
-            input_variables=["benchmark", "entity_content"],
-            partial_variables={"format_instructions": self.parser.get_format_instructions()},
-        )
-        
-        for entity in top_entities:
-            try:
-                # Limit the text passed to Mistral to save context length
-                content_snippet = entity['content'][:3000]
-                _input = prompt.format(benchmark=benchmark_reqs, entity_content=content_snippet)
-                
-                # Inference via Mistral
-                response = self.llm.invoke(_input)
-                parsed_res = self.parser.parse(response)
-                
-                leaderboard.append({
-                    "entity_id": entity["entity_id"],
-                    "alignment_score": parsed_res.alignment_score,
-                    "logic": parsed_res.logic
-                })
-            except Exception as e:
-                print(f"⚠️ Could not evaluate {entity['entity_id']}: {e}")
-                
+                input_variables=["benchmark", "entity_content"],
+                partial_variables={"format_instructions": self.parser.get_format_instructions()},
+            )
+            for entity in top_entities:
+                try:
+                    content_snippet = entity['content'][:3000]
+                    _input = single_prompt.format(benchmark=benchmark_reqs, entity_content=content_snippet)
+                    
+                    response = self.llm.invoke(_input)
+                    response_content = response.content if hasattr(response, "content") else str(response)
+                    parsed_res = self.parser.parse(response_content)
+                    
+                    leaderboard.append({
+                        "entity_id": entity["entity_id"],
+                        "alignment_score": parsed_res.alignment_score,
+                        "logic": parsed_res.logic
+                    })
+                except Exception as single_error:
+                    print(f"⚠️ Could not evaluate {entity['entity_id']} individually: {single_error}")
+
         # Sort by alignment score descending
         leaderboard.sort(key=lambda x: x["alignment_score"], reverse=True)
         

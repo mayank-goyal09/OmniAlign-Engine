@@ -205,26 +205,32 @@ with st.expander(db_title, expanded=(num_docs == 0)):
             if not uploaded_files:
                 st.warning("Please select files to upload.")
             else:
-                upload_dir = os.path.join(os.getcwd(), "data", "uploads")
-                os.makedirs(upload_dir, exist_ok=True)
-                
+                import tempfile
                 success_count = 0
                 for uploaded_file in uploaded_files:
-                    temp_path = os.path.join(upload_dir, uploaded_file.name)
-                    with open(temp_path, "wb") as f:
-                        f.write(uploaded_file.getbuffer())
+                    suffix = os.path.splitext(uploaded_file.name)[1]
+                    # Create temp file in system temp directory
+                    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
+                    temp_path = temp_file.name
                     
-                    with st.spinner(f"Indexing {uploaded_file.name}..."):
-                        try:
+                    try:
+                        temp_file.write(uploaded_file.getbuffer())
+                        temp_file.close() # Close file handle so parser can open it on Windows
+                        
+                        with st.spinner(f"Indexing {uploaded_file.name}..."):
                             data = extract_structured_data(temp_path)
                             data_dict = data.model_dump()
                             engine.add_document(data_dict)
                             success_count += 1
-                        except Exception as e:
-                            st.error(f"Error processing {uploaded_file.name}: {e}")
-                        finally:
+                        st.success(f"Indexed: {data_dict['entity_name']}")
+                    except Exception as e:
+                        st.error(f"Error processing {uploaded_file.name}: {e}")
+                    finally:
+                        try:
                             if os.path.exists(temp_path):
                                 os.remove(temp_path)
+                        except Exception as cleanup_error:
+                            print(f"Error cleaning up temp file: {cleanup_error}")
                 if success_count > 0:
                     st.success(f"Successfully indexed {success_count} document(s)!")
                     st.rerun()

@@ -153,6 +153,28 @@ div[data-testid="stExpander"] {
     margin-bottom: 24px !important;
 }
 
+/* Header Description Cards */
+.header-card {
+    background: rgba(22, 17, 43, 0.4) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    border: 1px solid rgba(111, 76, 255, 0.15) !important;
+    border-radius: 12px !important;
+    padding: 14px !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
+    transition: all 0.3s ease !important;
+}
+
+.header-card:hover {
+    border-color: rgba(111, 76, 255, 0.35) !important;
+    background: rgba(22, 17, 43, 0.55) !important;
+    transform: scale(1.01) !important;
+}
+
 /* Headings with expansion animation */
 @keyframes tracking-in-expand {
   0% {
@@ -239,9 +261,34 @@ def render_as_html_list(text):
         return text.replace("\n", "<br>")
     return html
 
-# App Header
-st.markdown("<h1>🤖 OmniMatch AI</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #a5a2e6; font-size: 18px; margin-top: -10px; margin-bottom: 30px;'>Universal Semantic Engine & Deep Gap Analyzer</p>", unsafe_allow_html=True)
+# App Header (3-Column Layout to fill empty left/right margins)
+head_col1, head_col2, head_col3 = st.columns([2, 3, 2])
+
+with head_col1:
+    st.markdown("""
+    <div class="header-card" style="border-right: 3px solid rgba(111, 76, 255, 0.4) !important;">
+        <h5 style="margin-top:0; color:#b89eff; font-size:13px; text-transform:uppercase; letter-spacing:1px; margin-bottom: 6px;">📁 1. Semantic Index</h5>
+        <p style="margin: 0; font-size:11px; color:#a5a2e6; line-height:1.4;">
+            Upload PDF, Word, or text files. The engine extracts structural data and maps them into a high-speed FAISS vector space.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+with head_col2:
+    st.markdown("<h1>🤖 OmniMatch AI</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #a5a2e6; font-size: 15px; margin-top: -10px; margin-bottom: 10px;'>Universal Semantic Engine & Gap Analyzer</p>", unsafe_allow_html=True)
+
+with head_col3:
+    st.markdown("""
+    <div class="header-card" style="border-left: 3px solid rgba(168, 85, 247, 0.4) !important;">
+        <h5 style="margin-top:0; color:#a5f3fc; font-size:13px; text-transform:uppercase; letter-spacing:1px; margin-bottom: 6px;">🧠 2. Gap Critic</h5>
+        <p style="margin: 0; font-size:11px; color:#a5a2e6; line-height:1.4;">
+            Input target requirements in plain text. The AI calculates match scores and highlights strengths and gaps in real-time.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
 
 # System Stats row (Overview Dashboard)
 num_docs = len(engine.metadata)

@@ -76,10 +76,21 @@ def extract_structured_data(file_path: str):
         file_hash = None
         cache = {}
 
-    # Load the PDF
-    loader = PyPDFLoader(file_path)
-    pages = loader.load_and_split()
-    full_text = " ".join([page.page_content for page in pages])
+    # Load the document based on type
+    _, ext = os.path.splitext(file_path.lower())
+    if ext == ".pdf":
+        loader = PyPDFLoader(file_path)
+        pages = loader.load_and_split()
+        full_text = " ".join([page.page_content for page in pages])
+    elif ext == ".docx":
+        import docx
+        doc = docx.Document(file_path)
+        full_text = "\n".join([p.text for p in doc.paragraphs])
+    elif ext in [".txt", ".md", ".json"]:
+        with open(file_path, 'r', encoding='utf-8', errors='replace') as f:
+            full_text = f.read()
+    else:
+        raise ValueError(f"Unsupported file format: {ext}")
     
     # Create the Prompt (The Instructions)
     prompt = PromptTemplate(

@@ -20,9 +20,17 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
-/* Main container and backgrounds */
+/* Shifting aurora background animation */
+@keyframes aurora {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
 body, [data-testid="stAppViewContainer"], .main {
-    background: radial-gradient(circle at 50% 50%, #15112e 0%, #0c0817 100%) !important;
+    background: linear-gradient(-45deg, #0e0a1f, #160e35, #080512, #211548) !important;
+    background-size: 400% 400% !important;
+    animation: aurora 20s ease infinite !important;
     font-family: 'Outfit', sans-serif !important;
     color: #e0e0fc !important;
 }
@@ -49,6 +57,42 @@ header {visibility: hidden;}
     border-color: rgba(111, 76, 255, 0.45) !important;
     box-shadow: 0 8px 32px 0 rgba(111, 76, 255, 0.2) !important;
     transform: translateY(-2px) !important;
+}
+
+/* Stat Cards for System Overview Dashboard */
+.stat-card {
+    background: rgba(22, 17, 43, 0.5) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    border: 1px solid rgba(111, 76, 255, 0.2) !important;
+    border-radius: 14px !important;
+    padding: 16px !important;
+    text-align: center !important;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3) !important;
+}
+
+.stat-card:hover {
+    border-color: rgba(111, 76, 255, 0.45) !important;
+    background: rgba(111, 76, 255, 0.08) !important;
+    transform: translateY(-4px) !important;
+    box-shadow: 0 10px 30px rgba(111, 76, 255, 0.25) !important;
+}
+
+.stat-val {
+    font-size: 24px !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    margin-bottom: 4px !important;
+    text-shadow: 0 0 10px rgba(255,255,255,0.1);
+}
+
+.stat-label {
+    font-size: 11px !important;
+    color: #a5a2e6 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1.5px !important;
+    font-weight: 500 !important;
 }
 
 /* Prompt Box Styling (rounded rectangular) */
@@ -109,7 +153,20 @@ div[data-testid="stExpander"] {
     margin-bottom: 24px !important;
 }
 
-/* Headings */
+/* Headings with expansion animation */
+@keyframes tracking-in-expand {
+  0% {
+    letter-spacing: -0.2em;
+    opacity: 0;
+  }
+  40% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
 h1 {
     background: linear-gradient(90deg, #b89eff, #ffffff 60%, #a5f3fc) !important;
     -webkit-background-clip: text !important;
@@ -117,6 +174,7 @@ h1 {
     font-weight: 800 !important;
     letter-spacing: -1.5px !important;
     text-align: center;
+    animation: tracking-in-expand 1s cubic-bezier(0.215, 0.610, 0.355, 1.000) both !important;
 }
 
 h2, h3 {
@@ -184,6 +242,41 @@ def render_as_html_list(text):
 # App Header
 st.markdown("<h1>🤖 OmniMatch AI</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; color: #a5a2e6; font-size: 18px; margin-top: -10px; margin-bottom: 30px;'>Universal Semantic Engine & Deep Gap Analyzer</p>", unsafe_allow_html=True)
+
+# System Stats row (Overview Dashboard)
+num_docs = len(engine.metadata)
+stat_col1, stat_col2, stat_col3, stat_col4 = st.columns(4)
+
+with stat_col1:
+    st.markdown(f"""
+    <div class="stat-card">
+        <div class="stat-val" style="color: #10b981;">🟢 Active</div>
+        <div class="stat-label">System Engine</div>
+    </div>
+    """, unsafe_allow_html=True)
+with stat_col2:
+    st.markdown(f"""
+    <div class="stat-card">
+        <div class="stat-val" style="color: #a855f7;">{num_docs}</div>
+        <div class="stat-label">Indexed Files</div>
+    </div>
+    """, unsafe_allow_html=True)
+with stat_col3:
+    st.markdown(f"""
+    <div class="stat-card">
+        <div class="stat-val" style="color: #3b82f6;">MiniLM-L6</div>
+        <div class="stat-label">Vector Embedder</div>
+    </div>
+    """, unsafe_allow_html=True)
+with stat_col4:
+    st.markdown(f"""
+    <div class="stat-card">
+        <div class="stat-val" style="color: #f59e0b;">Llama-3.3</div>
+        <div class="stat-label">LLM Critic</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+st.markdown("<div style='height: 25px;'></div>", unsafe_allow_html=True)
 
 # Expander for Knowledge Base
 num_docs = len(engine.metadata)

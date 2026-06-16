@@ -2,7 +2,7 @@
 langchain>=1.3.9
 langchain-core>=1.4.6
 langchain-community>=0.4.2
-langchain-openai>=0.3.0  # If using OpenAI/Azure
+langchain-groq>=0.1.3
 
 # --- Data Validation & Structure ---
 pydantic>=2.8.0

@@ -7,16 +7,15 @@ if sys.platform == "win32":
 from dotenv import load_dotenv
 load_dotenv()
 
-from langchain_openai import ChatOpenAI
+from langchain_groq import ChatGroq
 from langchain_core.prompts import PromptTemplate
 
 # Initialize our Critic 🧠
 # Using Groq's llama-3.3-70b-versatile model for sub-second high-intelligence processing
-llm = ChatOpenAI(
-    base_url="https://api.groq.com/openai/v1",
-    api_key=os.environ.get("GROQ_API_KEY"),
+llm = ChatGroq(
     model="llama-3.3-70b-versatile",
-    temperature=0
+    temperature=0,
+    groq_api_key=os.environ.get("GROQ_API_KEY")
 )
 
 class GapAnalyzer:

@@ -12,7 +12,7 @@ from typing import List
 
 from pydantic import BaseModel, Field
 from langchain_community.document_loaders import PyPDFLoader
-from langchain_openai import ChatOpenAI
+from langchain_groq import ChatGroq
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser
 from sentence_transformers import SentenceTransformer
@@ -43,11 +43,10 @@ class SemanticRankingEngine:
         # 2. Initialize the Embedder
         self.embedder = SentenceTransformer('all-MiniLM-L6-v2')
         # 3. Initialize the Evaluator Brain (llama-3.3-70b-versatile via Groq)
-        self.llm = ChatOpenAI(
-            base_url="https://api.groq.com/openai/v1",
-            api_key=os.environ.get("GROQ_API_KEY"),
+        self.llm = ChatGroq(
             model="llama-3.3-70b-versatile",
-            temperature=0
+            temperature=0,
+            groq_api_key=os.environ.get("GROQ_API_KEY")
         )
         self.metadata = []
         self.parser = PydanticOutputParser(pydantic_object=RankingResult)

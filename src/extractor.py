@@ -24,15 +24,14 @@ load_dotenv()
 
 import hashlib
 import json
-from langchain_openai import ChatOpenAI
+from langchain_groq import ChatGroq
 
 # 2. Initialize the "Brain" 🧠
 # Using Groq's llama-3.3-70b-versatile model for sub-second high-intelligence processing
-llm = ChatOpenAI(
-    base_url="https://api.groq.com/openai/v1",
-    api_key=os.environ.get("GROQ_API_KEY"),
+llm = ChatGroq(
     model="llama-3.3-70b-versatile",
-    temperature=0
+    temperature=0,
+    groq_api_key=os.environ.get("GROQ_API_KEY")
 )
 parser = PydanticOutputParser(pydantic_object=OmniSchema)
 

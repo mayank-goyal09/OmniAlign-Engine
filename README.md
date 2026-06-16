@@ -2,7 +2,7 @@
 
 # 🤖 OmniMatch AI — Universal Semantic Alignment & Deep Gap Analyzer
 
-### 🌐 **[omnialign-engine-project.streamlit.app](https://omnialign-engine-project.streamlit.app/)**
+### 🌐 **[Launch Live Application](https://omnialign-engine-project.streamlit.app/)**
 
 [![Typing SVG](https://readme-typing-svg.demolab.com?font=Outfit&weight=700&size=30&duration=3000&pause=1000&color=6F4CFF&center=true&vCenter=true&width=900&height=50&lines=Map+semantic+relationships...+🧬;Index+PDFs%2C+DOCX%2C+and+TXT+files+instantly;FAISS+Vector+Similarity+Search;Streaming+Llama-3.3+Gap+Critic+HUD)](https://git.io/typing-svg)
 

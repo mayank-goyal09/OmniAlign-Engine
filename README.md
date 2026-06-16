@@ -2,12 +2,12 @@
 
 # 🤖 OmniMatch AI — Universal Semantic Alignment & Deep Gap Analyzer
 
-### 🌐 **[Map Profiles & Bridge the Gaps](https://github.com/mayank-goyal09/OmniAlign-Engine)**
+### 🌐 **[omnialign-engine-project.streamlit.app](https://omnialign-engine-project.streamlit.app/)**
 
 [![Typing SVG](https://readme-typing-svg.demolab.com?font=Outfit&weight=700&size=30&duration=3000&pause=1000&color=6F4CFF&center=true&vCenter=true&width=900&height=50&lines=Map+semantic+relationships...+🧬;Index+PDFs%2C+DOCX%2C+and+TXT+files+instantly;FAISS+Vector+Similarity+Search;Streaming+Llama-3.3+Gap+Critic+HUD)](https://git.io/typing-svg)
 
 ![Python](https://img.shields.io/badge/Python-3.9+-3776ab?style=for-the-badge&logo=python&logoColor=white)
-[![Streamlit](https://img.shields.io/badge/Streamlit-omnialign--engine--project.streamlit.app-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://omnialign-engine-project.streamlit.app/)
+[![Streamlit](https://img.shields.io/badge/Streamlit-Live_App-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://omnialign-engine-project.streamlit.app/)
 ![LangChain](https://img.shields.io/badge/LangChain-Community-002244?style=for-the-badge&logo=chainlink&logoColor=white)
 ![FAISS](https://img.shields.io/badge/Vector_DB-FAISS-6F4CFF?style=for-the-badge&logo=databricks&logoColor=white)
 ![Llama 3.3](https://img.shields.io/badge/LLM-Llama_3.3_Groq-f59e0b?style=for-the-badge&logo=meta&logoColor=white)

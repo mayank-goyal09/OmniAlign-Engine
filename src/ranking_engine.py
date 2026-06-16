@@ -23,7 +23,7 @@ import logging
 logging.getLogger("transformers.modeling_utils").setLevel(logging.ERROR)
 warnings.filterwarnings("ignore")
 
-# Define parser schema for Ollama
+# Define parser schema for ranking output
 class RankingResult(BaseModel):
     alignment_score: int = Field(description="Integer score from 0 to 100 based on attribute alignment and skill transferability.")
     logic: str = Field(description="1-sentence explanation of why this entity is a high/low match.")

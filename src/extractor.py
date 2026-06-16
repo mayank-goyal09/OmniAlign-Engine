@@ -7,7 +7,6 @@ import os
 from typing import List, Optional
 from pydantic import BaseModel, Field
 from langchain_community.document_loaders import PyPDFLoader
-from langchain_ollama import OllamaLLM
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import PromptTemplate
 

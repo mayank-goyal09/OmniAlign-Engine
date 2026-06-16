@@ -2,9 +2,7 @@
 langchain==1.3.9
 langchain-core==1.4.6
 langchain-community==0.4.2
-langchain-ollama==1.1.0
 langchain-openai>=0.3.0  # If using OpenAI/Azure
-ollama>=0.1.6            # For running LLama/Mistral locally
 
 # --- Data Validation & Structure ---
 pydantic==2.5.3
